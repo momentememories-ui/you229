@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy anniversary</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ffb7c5;
+            --accent: #ff758c;
+            --bg-light: #fff0f3;
+            --pastel-pink: #ffccd5;
+            --text-pink: #d81b60;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        body {
+            background-color: #1e1e24;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* กรอบจำลองหน้าจอมือถือแนวตั้ง */
+        .mobile-container {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            max-height: 932px;
+            background-color: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ----- หน้า 1: หน้าเล่นเกมสลับภาพ ----- */
+        #game-page {
+            padding: 20px 16px;
+            background: linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .header-title {
+            text-align: center;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .header-title h1 {
+            font-size: 22px;
+            color: var(--text-pink);
+            font-weight: 800;
+            text-shadow: 1px 1px 0px #fff;
+        }
+
+        .header-title p {
+            font-size: 14px;
+            color: #636e72;
+            margin-top: 4px;
+        }
+
+        /* กระดานสลับภาพ */
+        .board-wrapper {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+            min-height: 0;
+        }
+
+        .puzzle-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            background: var(--pastel-pink);
+            border: 4px solid var(--primary);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(255, 117, 140, 0.25);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s ease, gap 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .puzzle-board.completed {
+            gap: 0px;
+            border-color: var(--accent);
+        }
+
+        .puzzle-piece {
+            width: 100%;
+            height: 100%;
+            background-repeat: no-repeat;
+            cursor: grab;
+            transition: transform 0.15s ease, opacity 0.15s ease, border-radius 0.3s ease;
+            box-sizing: border-box;
+            border-radius: 6px;
+            touch-action: none;
+        }
+
+        .puzzle-board.completed .puzzle-piece {
+            border-radius: 0px;
+        }
+
+        .puzzle-piece:active {
+            cursor: grabbing;
+        }
+
+        .footer-hint {
+            font-size: 13px;
+            color: var(--text-pink);
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--pastel-pink);
+            box-shadow: 0 2px 8px rgba(255, 117, 140, 0.1);
+            flex-shrink: 0;
+        }
+
+        /* Modal เมื่อต่อเสร็จ */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(45, 52, 54, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 25px 20px;
+            border-radius: 24px;
+            text-align: center;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid var(--primary);
+        }
+
+        .success-title {
+            color: var(--text-pink);
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .money-text {
+            color: #2d3436;
+            font-size: 17px;
+            font-weight: 700;
+            margin: 15px 0 20px 0;
+            background: var(--bg-light);
+            padding: 12px 18px;
+            border-radius: 30px;
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.15);
+            border: 1.5px solid var(--primary);
+            letter-spacing: 0.3px;
+            animation: bounceBounce 1.2s infinite ease-in-out;
+            line-height: 1.5;
+        }
+
+        @keyframes bounceBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            30% { transform: translateY(-8px) scale(1.03); }
+            50% { transform: translateY(0) scale(0.98); }
+            70% { transform: translateY(-4px) scale(1.01); }
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #ffb7c5 0%, #ff758c 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.4);
+            width: 100%;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .next-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* ----- หน้า 2: หน้าคำอวยพรวันครบรอบ (ไม่ซูมรูป + มีอิโมจิลอย) ----- */
+        #wish-page {
+            display: none;
+            height: 100%;
+            width: 100%;
+            background-color: #fff0f3; /* สีพื้นหลังเผื่อขอบรูป */
+            background-size: contain; /* ปรับรูปให้พอดี ไม่ซูมล้น */
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* เอฟเฟกต์อิโมจิลอย */
+        .floating-emoji {
+            position: absolute;
+            bottom: -50px;
+            font-size: 24px;
+            animation: floatUp 4s infinite linear;
+            z-index: 10;
+            opacity: 0.8;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(0.8) rotate(0deg);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-900px) scale(1.3) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- แท็กสำหรับเล่นเพลงซ้ำ (loop) -->
+<audio id="bgMusic" src="song.mp3" loop preload="auto"></audio>
+
+<div class="mobile-container">
+    <!-- หน้า 1: เกมสลับภาพแบบลากวาง -->
+    <div id="game-page">
+        <div class="header-title">
+            <h1>🧩 จิ๊กซอว์วันครบรอบของเรา</h1>
+            <p>ลากรูปไปสลับตำแหน่งกันนะที่รัก 💕</p>
+        </div>
+
+        <!-- กระดานสลับภาพ 3x3 -->
+        <div class="board-wrapper" id="board-wrapper">
+            <div class="puzzle-board" id="board"></div>
+        </div>
+
+        <div class="footer-hint">
+            👆 แตะค้างที่รูป แล้วลากไปวางสลับกันได้เลย!
+        </div>
+    </div>
+
+    <!-- Modal แจ้งเตือนเมื่อเรียงถูกครบ -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="success-title">เย้!</div>
+            <div class="money-text">ตัวเก่งที่่สู๊ดดด 💕</div>
+            <button class="next-btn" onclick="goToWishPage()"></button>
+        </div>
+    </div>
+
+    <!-- หน้า 2: หน้าคำอวยพรวันครบรอบ -->
+    <div id="wish-page"></div>
+</div>
+
+<script>
+    const BOARD_SIZE = 3; // 3x3
+    const TOTAL_PIECES = BOARD_SIZE * BOARD_SIZE;
+    const IMAGE_SRC = 'photo1.jpg'; // รูปสำหรับทำจิ๊กซอว์
+
+    let board = document.getElementById('board');
+    let boardWrapper = document.getElementById('board-wrapper');
+    let currentPositions = [];
+    let draggedIndex = null;
+    let isGameFinished = false;
+
+    // ระบบเล่นเพลงอัตโนมัติเมื่อกดสัมผัสหน้าจอครั้งแรก
+    let isMusicStarted = false;
+    function startMusic() {
+        if (!isMusicStarted) {
+            let music = document.getElementById('bgMusic');
+            if (music) {
+                music.play().then(() => {
+                    isMusicStarted = true;
+                }).catch(err => {
+                    console.log("Autoplay waiting for user interaction:", err);
+                });
+            }
+        }
+    }
+
+    window.addEventListener('click', startMusic, { once: true });
+    window.addEventListener('touchstart', startMusic, { once: true });
+
+    function initPuzzle() {
+        let img = new Image();
+        img.src = IMAGE_SRC;
+        img.onload = function() {
+            let imgWidth = img.naturalWidth;
+            let imgHeight = img.naturalHeight;
+            
+            let maxW = boardWrapper.clientWidth - 10;
+            let maxH = boardWrapper.clientHeight - 10;
+
+            let finalW = maxW;
+            let finalH = finalW * (imgHeight / imgWidth);
+
+            if (finalH > maxH) {
+                finalH = maxH;
+                finalW = finalH * (imgWidth / imgHeight);
+            }
+
+            board.style.width = `${finalW}px`;
+            board.style.height = `${finalH}px`;
+
+            setupBoard(finalW, finalH);
+        };
+    }
+
+    function setupBoard(boardWidth, boardHeight) {
+        board.innerHTML = '';
+        board.classList.remove('completed');
+        isGameFinished = false;
+
+        currentPositions = Array.from({length: TOTAL_PIECES}, (_, i) => i);
+        
+        do {
+            currentPositions.sort(() => Math.random() - 0.5);
+        } while (isComplete());
+
+        renderBoard(boardWidth, boardHeight);
+    }
+
+    function renderBoard(boardWidth, boardHeight) {
+        board.innerHTML = '';
+        let pieceWidth = boardWidth / BOARD_SIZE;
+        let pieceHeight = boardHeight / BOARD_SIZE;
+
+        currentPositions.forEach((correctIndex, slotIndex) => {
+            let piece = document.createElement('div');
+            piece.classList.add('puzzle-piece');
+            piece.dataset.slotIndex = slotIndex;
+            piece.draggable = !isGameFinished;
+
+            let row = Math.floor(correctIndex / BOARD_SIZE);
+            let col = correctIndex % BOARD_SIZE;
+
+            piece.style.backgroundImage = `url('${IMAGE_SRC}')`;
+            piece.style.backgroundSize = `${boardWidth}px ${boardHeight}px`;
+            piece.style.backgroundPosition = `-${col * pieceWidth}px -${row * pieceHeight}px`;
+
+            if (!isGameFinished) {
+                addDragAndTouchEvents(piece, pieceWidth, pieceHeight);
+            }
+
+            board.appendChild(piece);
+        });
+    }
+
+    function addDragAndTouchEvents(piece, pWidth, pHeight) {
+        piece.addEventListener('dragstart', function (e) {
+            if (isGameFinished) return;
+            startMusic();
+            draggedIndex = parseInt(this.dataset.slotIndex);
+            e.dataTransfer.setData('text/plain', draggedIndex);
+            this.style.opacity = '0.4';
+        });
+
+        piece.addEventListener('dragend', function () {
+            this.style.opacity = '1';
+        });
+
+        piece.addEventListener('dragover', function (e) {
+            e.preventDefault();
+        });
+
+        piece.addEventListener('drop', function (e) {
+            e.preventDefault();
+            if (isGameFinished) return;
+            let targetIndex = parseInt(this.dataset.slotIndex);
+            if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                swapPieces(draggedIndex, targetIndex);
+            }
+        });
+
+        let touchClone = null;
+
+        piece.addEventListener('touchstart', function (e) {
+            if (isGameFinished) return;
+            startMusic();
+            draggedIndex = parseInt(this.dataset.slotIndex);
+
+            let touch = e.touches[0];
+            touchClone = piece.cloneNode(true);
+            touchClone.style.position = 'fixed';
+            touchClone.style.width = `${pWidth}px`;
+            touchClone.style.height = `${pHeight}px`;
+            touchClone.style.zIndex = '1000';
+            touchClone.style.pointerEvents = 'none';
+            touchClone.style.opacity = '0.9';
+            touchClone.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
+            touchClone.style.left = (touch.clientX - (pWidth / 2)) + 'px';
+            touchClone.style.top = (touch.clientY - (pHeight / 2)) + 'px';
+
+            document.body.appendChild(touchClone);
+            piece.style.opacity = '0.3';
+        }, { passive: false });
+
+        piece.addEventListener('touchmove', function (e) {
+            if (!touchClone || isGameFinished) return;
+            e.preventDefault();
+            let touch = e.touches[0];
+            touchClone.style.left = (touch.clientX - (pWidth / 2)) + 'px';
+            touchClone.style.top = (touch.clientY - (pHeight / 2)) + 'px';
+        }, { passive: false });
+
+        piece.addEventListener('touchend', function (e) {
+            if (!touchClone) return;
+
+            let touch = e.changedTouches[0];
+            touchClone.remove();
+            touchClone = null;
+            piece.style.opacity = '1';
+
+            if (isGameFinished) return;
+
+            let elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            let targetPiece = elementBelow ? elementBelow.closest('.puzzle-piece') : null;
+
+            if (targetPiece) {
+                let targetIndex = parseInt(targetPiece.dataset.slotIndex);
+                if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                    swapPieces(draggedIndex, targetIndex);
+                }
+            }
+            draggedIndex = null;
+        });
+    }
+
+    function swapPieces(index1, index2) {
+        let temp = currentPositions[index1];
+        currentPositions[index1] = currentPositions[index2];
+        currentPositions[index2] = temp;
+
+        let boardWidth = board.clientWidth;
+        let boardHeight = board.clientHeight;
+
+        if (isComplete()) {
+            isGameFinished = true;
+            board.classList.add('completed');
+            renderBoard(boardWidth, boardHeight);
+
+            setTimeout(() => {
+                document.getElementById('successModal').style.display = 'flex';
+            }, 3000);
+        } else {
+            renderBoard(boardWidth, boardHeight);
+        }
+    }
+
+    function isComplete() {
+        return currentPositions.every((val, index) => val === index);
+    }
+
+    function goToWishPage() {
+        document.getElementById('successModal').style.display = 'none';
+        document.getElementById('game-page').style.display = 'none';
+        
+        let wishPage = document.getElementById('wish-page');
+        wishPage.style.backgroundImage = "url('photo5.png')";
+        wishPage.style.display = 'block';
+
+        // สร้างอิโมจิลอยขึ้นมาอัตโนมัติ
+        startFloatingEmojis();
+    }
+
+    function startFloatingEmojis() {
+        const emojis = ['❤️', '💖', '💐', '✨', '💕', '🥰', '🌹'];
+        let wishPage = document.getElementById('wish-page');
+
+        setInterval(() => {
+            let emojiSpan = document.createElement('div');
+            emojiSpan.classList.add('floating-emoji');
+            emojiSpan.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            
+            // สุ่มตำแหน่งแนวนอน
+            emojiSpan.style.left = Math.random() * 90 + '%';
+            // สุ่มขนาด
+            emojiSpan.style.fontSize = (Math.random() * 16 + 20) + 'px';
+            // สุ่มความเร็วในการลอย
+            let duration = Math.random() * 2 + 3;
+            emojiSpan.style.animationDuration = duration + 's';
+
+            wishPage.appendChild(emojiSpan);
+
+            // ลบอิโมจิเมื่อลอยพ้นจอแล้วเพื่อไม่ให้เปลืองหน่วยความจำ
+            setTimeout(() => {
+                emojiSpan.remove();
+            }, duration * 1000);
+        }, 400);
+    }
+
+    window.onload = initPuzzle;
+    window.onresize = initPuzzle;
+</script>
+
+</body>
+</html>
